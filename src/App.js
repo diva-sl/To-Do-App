@@ -1,38 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { Container, Typography } from "@mui/material";
-import InputForm from "./components/InputForm";
-import Todo from "./components/Todo";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import DefaultLayout from "./components/DefaultLayout";
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Todo from "./pages/Todo";
 
 const App = () => {
-  const [todos, setTodos] = useState([]);
-
-  useEffect(() => {
-    const localTodos = localStorage.getItem("todos");
-    if (localTodos) {
-      setTodos(JSON.parse(localTodos));
-    }
-  }, []);
-
-  const addTodos = async (todo) => {
-    setTodos([...todos, todo]);
-  };
-
-  useEffect(() => {
-    localStorage.setItem("todos", JSON.stringify(todos));
-  }, [todos]);
-
-  const completedFlag = (id) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
-  };
-
   return (
-    <Container maxWidth="sm">
-      <Typography variant="h4" align="center" gutterBottom>
-        My Todo App
-      </Typography>
-      <InputForm addTodos={addTodos} />
-      <Todo todos={todos} completedFlag={completedFlag} />
-    </Container>
+    <Router>
+      <DefaultLayout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/todo" element={<Todo />} />
+        </Routes>
+      </DefaultLayout>
+    </Router>
   );
 };
 

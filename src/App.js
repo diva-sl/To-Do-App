@@ -4,6 +4,8 @@ import DefaultLayout from "./components/DefaultLayout";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Todo from "./pages/Todo";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
 
 const App = () => {
   return (
@@ -13,6 +15,8 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/todo" element={<Todo />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
         </Routes>
       </DefaultLayout>
     </Router>

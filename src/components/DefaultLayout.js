@@ -1,8 +1,7 @@
-// src/components/DefaultLayout.js
 import React from "react";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
-import { Link } from "react-router-dom";
 import logo from "../Assets/todo-img.gif";
+import { Link } from "react-router-dom";
 
 const DefaultLayout = ({ children, isLoggedIn, onLogout }) => {
   return (
@@ -11,10 +10,18 @@ const DefaultLayout = ({ children, isLoggedIn, onLogout }) => {
         display: "flex",
         flexDirection: "column",
         minHeight: "100vh",
+        backgroundColor: "#98FB98", // Light green background
       }}
     >
-      {/* Header */}
-      <AppBar position="static" sx={{ backgroundColor: "#1976d2" }}>
+      {/* Custom AppBar */}
+      <AppBar
+        position="static"
+        sx={{
+          backgroundColor: "#2E8B57", // Darker green
+          padding: "0.5rem 1rem",
+          borderBottom: "2px solid #ffffff", // White bottom border
+        }}
+      >
         <Toolbar>
           {/* Logo */}
           <img
@@ -36,28 +43,28 @@ const DefaultLayout = ({ children, isLoggedIn, onLogout }) => {
             Todo-Plus
           </Typography>
 
-          {/* Navigation Buttons */}
+          {/* Navigation and Buttons */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Button component={Link} to="/" color="inherit">
+            <Button component={Link} to="/" sx={{ color: "#ffffff" }}>
               Home
             </Button>
-            <Button component={Link} to="/about" color="inherit">
+            <Button component={Link} to="/about" sx={{ color: "#ffffff" }}>
               About
             </Button>
-            <Button component={Link} to="/todo" color="inherit">
+            <Button component={Link} to="/todo" sx={{ color: "#ffffff" }}>
               Todo
             </Button>
 
-            {/* Sign In and Sign Up Buttons */}
             {!isLoggedIn ? (
               <>
                 <Button
                   component={Link}
                   to="/signin"
                   sx={{
-                    backgroundColor: "#ff4081",
+                    backgroundColor: "#000000",
                     color: "#ffffff",
-                    "&:hover": { backgroundColor: "#e91e63" },
+                    "&:hover": { backgroundColor: "#424242" },
+                    fontSize: "12px",
                     fontWeight: "bold",
                   }}
                 >
@@ -67,9 +74,10 @@ const DefaultLayout = ({ children, isLoggedIn, onLogout }) => {
                   component={Link}
                   to="/signup"
                   sx={{
-                    backgroundColor: "#00e676",
+                    backgroundColor: "#000000",
                     color: "#ffffff",
-                    "&:hover": { backgroundColor: "#00c853" },
+                    "&:hover": { backgroundColor: "#424242" },
+                    fontSize: "12px",
                     fontWeight: "bold",
                   }}
                 >
@@ -83,7 +91,7 @@ const DefaultLayout = ({ children, isLoggedIn, onLogout }) => {
                 sx={{
                   fontWeight: "bold",
                   border: "1px solid #ffffff",
-                  "&:hover": { backgroundColor: "#ffffff", color: "#1976d2" },
+                  "&:hover": { backgroundColor: "#ffffff", color: "#2E8B57" },
                 }}
               >
                 Logout
@@ -92,11 +100,7 @@ const DefaultLayout = ({ children, isLoggedIn, onLogout }) => {
           </Box>
         </Toolbar>
       </AppBar>
-
-      {/* Main Content */}
       <main style={{ flex: 1 }}>{children}</main>
-
-      {/* Footer */}
       <Box
         component="footer"
         sx={{

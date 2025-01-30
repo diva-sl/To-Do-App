@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Container, TextField, Button, Typography, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    username: "",
+    name: "",
     email: "",
     password: "",
   });
@@ -17,21 +18,36 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const response = await axios.post("http://localhost:5000/users/signup", {
+        formData,
       });
-      const data = await response.json();
-      if (response.ok) {
+      if (response.data.success) {
         alert("Signup successful!");
         navigate("/signin");
       } else {
-        alert(data.message || "Signup failed.");
+        alert(response.data.message);
       }
     } catch (error) {
       console.error("Error during signup:", error);
     }
+  };
+
+  const textFieldStyles = {
+    backgroundColor: "#98FB98",
+    borderRadius: "5px",
+    input: { color: "black" },
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": { borderColor: "black" },
+      "&:hover fieldset": { borderColor: "black" },
+      "&.Mui-focused fieldset": { borderColor: "black" },
+    },
+    "& .MuiInputLabel-root": {
+      color: "#757575",
+    },
+    "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled":
+      {
+        color: "black",
+      },
   };
 
   return (
@@ -55,36 +71,15 @@ const Signup = () => {
       </Typography>
       <form onSubmit={handleSubmit}>
         <TextField
-          label="Username"
-          name="username"
+          label="Name"
+          name="name"
           fullWidth
           variant="outlined"
           margin="normal"
-          value={formData.username}
+          value={formData.name}
           onChange={handleChange}
           required
-          sx={{
-            backgroundColor: "#98FB98",
-            borderRadius: "5px",
-            input: { color: "black" },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "black",
-              },
-              "&:hover fieldset": {
-                borderColor: "black",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "black",
-              },
-            },
-            "& .MuiInputLabel-root": {
-              color: "#757575",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "black",
-            },
-          }}
+          sx={textFieldStyles}
         />
         <TextField
           label="Email"
@@ -96,28 +91,7 @@ const Signup = () => {
           value={formData.email}
           onChange={handleChange}
           required
-          sx={{
-            backgroundColor: "#98FB98",
-            borderRadius: "5px",
-            input: { color: "black" },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "black",
-              },
-              "&:hover fieldset": {
-                borderColor: "black",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "black",
-              },
-            },
-            "& .MuiInputLabel-root": {
-              color: "#757575",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "black",
-            },
-          }}
+          sx={textFieldStyles}
         />
         <TextField
           label="Password"
@@ -129,28 +103,7 @@ const Signup = () => {
           value={formData.password}
           onChange={handleChange}
           required
-          sx={{
-            backgroundColor: "#98FB98",
-            borderRadius: "5px",
-            input: { color: "black" },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "black",
-              },
-              "&:hover fieldset": {
-                borderColor: "black",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "black",
-              },
-            },
-            "& .MuiInputLabel-root": {
-              color: "#757575",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "black",
-            },
-          }}
+          sx={textFieldStyles}
         />
         <Button
           type="submit"

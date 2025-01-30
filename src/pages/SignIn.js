@@ -1,38 +1,60 @@
 import React, { useState } from "react";
 import { Container, TextField, Button, Typography, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const Login = ({ onLogin }) => {
-  const [formData, setFormData] = useState({
+const SignIn = () => {
+  const [inputs, setInputs] = useState({
     email: "",
     password: "",
   });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setInputs({ ...inputs, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        onLogin(data.token);
+      const response = await axios.post(
+        "http://localhost:5000/users/signin",
+        inputs,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (response.data.success) {
+        localStorage.setItem("token", response.data.token);
+        alert(response.data.message);
         navigate("/");
       } else {
-        alert(data.message || "Login failed.");
+        alert(response.data.message);
       }
-    } catch (error) {
-      console.error("Error during login:", error);
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("An error occurred. Please try again.");
     }
   };
 
+  const textFieldStyles = {
+    backgroundColor: "#98FB98",
+    borderRadius: "5px",
+    input: { color: "black" },
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": { borderColor: "black" },
+      "&:hover fieldset": { borderColor: "black" },
+      "&.Mui-focused fieldset": { borderColor: "black" },
+    },
+    "& .MuiInputLabel-root": {
+      color: "#757575",
+    },
+    "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled":
+      {
+        color: "black",
+      },
+  };
   return (
     <Container
       maxWidth="sm"
@@ -60,31 +82,10 @@ const Login = ({ onLogin }) => {
           fullWidth
           variant="outlined"
           margin="normal"
-          value={formData.email}
+          value={inputs.email}
           onChange={handleChange}
           required
-          sx={{
-            backgroundColor: "#98FB98",
-            borderRadius: "5px",
-            input: { color: "black" },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "black",
-              },
-              "&:hover fieldset": {
-                borderColor: "black",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "black",
-              },
-            },
-            "& .MuiInputLabel-root": {
-              color: "#757575",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "black",
-            },
-          }}
+          sx={textFieldStyles}
         />
         <TextField
           label="Password"
@@ -93,31 +94,10 @@ const Login = ({ onLogin }) => {
           fullWidth
           variant="outlined"
           margin="normal"
-          value={formData.password}
+          value={inputs.password}
           onChange={handleChange}
           required
-          sx={{
-            backgroundColor: "#98FB98",
-            borderRadius: "5px",
-            input: { color: "black" },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: "black",
-              },
-              "&:hover fieldset": {
-                borderColor: "black",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: "black",
-              },
-            },
-            "& .MuiInputLabel-root": {
-              color: "#757575",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "black",
-            },
-          }}
+          sx={textFieldStyles}
         />
         <Button
           type="submit"
@@ -135,7 +115,7 @@ const Login = ({ onLogin }) => {
             },
           }}
         >
-          Login
+          SignIn
         </Button>
       </form>
       <Box mt={2} textAlign="center">
@@ -157,4 +137,4 @@ const Login = ({ onLogin }) => {
   );
 };
 
-export default Login;
+export default SignIn;

@@ -46,13 +46,14 @@ router.post("/signin", async (req, res) => {
 
   try {
     const existingUser = await User.findOne({ email });
+
     if (!existingUser) {
       return res.status(404).json({
         success: false,
         message: "User not found.",
-        data: null,
       });
     }
+
     const isCorrectPassword = bcrypt.compareSync(
       password,
       existingUser.password
@@ -61,27 +62,40 @@ router.post("/signin", async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Incorrect password.",
-        data: null,
       });
     }
 
     const token = jwt.sign(
       { userId: existingUser._id },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      {
+        expiresIn: "1d",
+      }
     );
+
+    const userResponse = {
+      name: existingUser.name,
+      email: existingUser.email,
+      avatar: existingUser.profilePicture || null,
+      avatarColor: existingUser.profilePicture
+        ? null
+        : existingUser.avatarColor,
+      avatarInitial: existingUser.profilePicture
+        ? null
+        : existingUser.avatarInitial,
+    };
 
     res.status(200).json({
       success: true,
       message: "User logged in successfully.",
       token,
+      user: userResponse,
     });
   } catch (error) {
     console.error("Error during sign-in:", error);
     res.status(500).json({
       success: false,
       message: "An internal server error occurred.",
-      data: null,
     });
   }
 });

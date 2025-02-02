@@ -1,36 +1,58 @@
-import React from "react";
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
-import logo from "../Assets/todo-img.gif";
+import React, { useEffect, useState } from "react";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  Avatar,
+} from "@mui/material";
 import { Link } from "react-router-dom";
+import logo from "../Assets/todo-img.gif";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 
-const DefaultLayout = ({ children, isLoggedIn, onLogout }) => {
+function DefaultLayout({ children, isLoggedIn, onLogout }) {
+  const [userName, setUserName] = useState("");
+  const [avatar, setAvatar] = useState(null);
+  const [avatarColor, setAvatarColor] = useState("#555");
+  const [avatarInitial, setAvatarInitial] = useState("");
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUserName(user.name || "User");
+      setAvatar(user.avatar);
+      setAvatarColor(user.avatarColor || "#555");
+      setAvatarInitial(
+        user.avatarInitial || user.name?.charAt(0).toUpperCase()
+      );
+    }
+  }, [isLoggedIn]);
+
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
         minHeight: "100vh",
-        backgroundColor: "#98FB98", // Light green background
+        backgroundColor: "#98FB98",
       }}
     >
-      {/* Custom AppBar */}
       <AppBar
         position="static"
         sx={{
-          backgroundColor: "#2E8B57", // Darker green
+          backgroundColor: "#2E8B57",
           padding: "0.5rem 1rem",
-          borderBottom: "2px solid #ffffff", // White bottom border
+          borderBottom: "2px solid #ffffff",
         }}
       >
         <Toolbar>
-          {/* Logo */}
           <img
             src={logo}
             alt="Logo"
             style={{ width: 50, height: 40, marginRight: 10 }}
           />
-
-          {/* Title */}
           <Typography
             variant="h6"
             sx={{
@@ -43,8 +65,14 @@ const DefaultLayout = ({ children, isLoggedIn, onLogout }) => {
             Todo-Plus
           </Typography>
 
-          {/* Navigation and Buttons */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexGrow: 1,
+              justifyContent: "center",
+              gap: 3,
+            }}
+          >
             <Button component={Link} to="/" sx={{ color: "#ffffff" }}>
               Home
             </Button>
@@ -54,53 +82,113 @@ const DefaultLayout = ({ children, isLoggedIn, onLogout }) => {
             <Button component={Link} to="/todo" sx={{ color: "#ffffff" }}>
               Todo
             </Button>
+          </Box>
 
-            {!isLoggedIn ? (
-              <>
-                <Button
-                  component={Link}
-                  to="/signin"
+          {!isLoggedIn ? (
+            <>
+              <Button
+                component={Link}
+                to="/signin"
+                sx={{
+                  backgroundColor: "#000",
+                  color: "#fff",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                }}
+              >
+                Sign In
+              </Button>
+              <Button
+                component={Link}
+                to="/signup"
+                sx={{
+                  backgroundColor: "#000",
+                  color: "#fff",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                }}
+              >
+                Sign Up
+              </Button>
+            </>
+          ) : (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              {avatar ? (
+                <img
+                  src={avatar}
+                  alt="User Avatar"
+                  style={{
+                    width: 35,
+                    height: 35,
+                    borderRadius: "50%",
+                    border: "1.5px solid #fff",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <Avatar
                   sx={{
-                    backgroundColor: "#000000",
-                    color: "#ffffff",
-                    "&:hover": { backgroundColor: "#424242" },
-                    fontSize: "12px",
+                    width: 35,
+                    height: 35,
+                    backgroundColor: avatarColor,
+                    color: "#fff",
                     fontWeight: "bold",
+                    fontSize: "16px",
+                    border: "1.5px solid #fff",
                   }}
                 >
-                  Sign In
-                </Button>
-                <Button
-                  component={Link}
-                  to="/signup"
-                  sx={{
-                    backgroundColor: "#000000",
-                    color: "#ffffff",
-                    "&:hover": { backgroundColor: "#424242" },
-                    fontSize: "12px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Sign Up
-                </Button>
-              </>
-            ) : (
+                  {avatarInitial}
+                </Avatar>
+              )}
+
+              <Typography
+                sx={{
+                  color: "#D3D3D3",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                  textTransform: "capitalize",
+                }}
+              >
+                Hi, {userName}
+              </Typography>
               <Button
                 color="inherit"
                 onClick={onLogout}
                 sx={{
                   fontWeight: "bold",
-                  border: "1px solid #ffffff",
-                  "&:hover": { backgroundColor: "#ffffff", color: "#2E8B57" },
+                  backgroundColor: "black",
+                  color: "#fff",
+                  padding: "6px 14px",
+                  borderRadius: "8px",
+                  textTransform: "capitalize",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 1,
+                  "&:hover": {
+                    backgroundColor: "#333",
+                    transform: "scale(1.02)",
+                  },
+                  transition: "transform 0.2s ease, background-color 0.3s",
+                  marginLeft: "70px",
                 }}
               >
-                Logout
+                Exit
+                <ExitToAppIcon sx={{ fontSize: "20px" }} />{" "}
               </Button>
-            )}
-          </Box>
+            </Box>
+          )}
         </Toolbar>
       </AppBar>
+
       <main style={{ flex: 1 }}>{children}</main>
+
       <Box
         component="footer"
         sx={{
@@ -117,6 +205,6 @@ const DefaultLayout = ({ children, isLoggedIn, onLogout }) => {
       </Box>
     </div>
   );
-};
+}
 
 export default DefaultLayout;

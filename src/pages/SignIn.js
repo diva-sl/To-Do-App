@@ -3,11 +3,8 @@ import { Container, TextField, Button, Typography, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const SignIn = () => {
-  const [inputs, setInputs] = useState({
-    email: "",
-    password: "",
-  });
+function SignIn({ onLogin }) {
+  const [inputs, setInputs] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -20,14 +17,31 @@ const SignIn = () => {
       const response = await axios.post(
         "http://localhost:5000/users/signin",
         inputs,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
       if (response.data.success) {
+        const user = response.data.user;
+
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            name: user.name,
+            avatar: user.profilePicture || null,
+            avatarColor: user.avatarColor,
+            avatarInitial: user.avatarInitial,
+          })
+        );
+
         alert(response.data.message);
+        onLogin(
+          true,
+          user.name,
+          user.profilePicture,
+          user.avatarColor,
+          user.avatarInitial
+        );
         navigate("/");
       } else {
         alert(response.data.message);
@@ -47,13 +61,16 @@ const SignIn = () => {
       "&:hover fieldset": { borderColor: "black" },
       "&.Mui-focused fieldset": { borderColor: "black" },
     },
-    "& .MuiInputLabel-root": {
-      color: "#757575",
-    },
+    "& .MuiInputLabel-root": { color: "#757575" },
     "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled":
       {
         color: "black",
       },
+    "& input:-webkit-autofill": {
+      backgroundColor: "#98FB98 !important",
+      WebkitBoxShadow: "0 0 0px 1000px #98FB98 inset !important",
+      transition: "background-color 5000s ease-in-out 0s",
+    },
   };
   return (
     <Container
@@ -72,7 +89,7 @@ const SignIn = () => {
         gutterBottom
         sx={{ color: "#ffffff" }}
       >
-        Login
+        Sign In
       </Typography>
       <form onSubmit={handleSubmit}>
         <TextField
@@ -84,6 +101,7 @@ const SignIn = () => {
           margin="normal"
           value={inputs.email}
           onChange={handleChange}
+          autoComplete="email"
           required
           sx={textFieldStyles}
         />
@@ -109,13 +127,10 @@ const SignIn = () => {
             backgroundColor: "#98FB98",
             color: "#2E8B57",
             fontWeight: "bold",
-            "&:hover": {
-              backgroundColor: "#2E8B57",
-              color: "#98FB98",
-            },
+            "&:hover": { backgroundColor: "#2E8B57", color: "#98FB98" },
           }}
         >
-          SignIn
+          Sign In
         </Button>
       </form>
       <Box mt={2} textAlign="center">
@@ -124,10 +139,7 @@ const SignIn = () => {
           <Button
             onClick={() => navigate("/signup")}
             variant="text"
-            sx={{
-              color: "#98FB98",
-              textTransform: "none",
-            }}
+            sx={{ color: "#98FB98", textTransform: "none" }}
           >
             Signup
           </Button>
@@ -135,6 +147,6 @@ const SignIn = () => {
       </Box>
     </Container>
   );
-};
+}
 
 export default SignIn;

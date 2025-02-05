@@ -25,26 +25,29 @@ const Todo = ({ isAuthenticated, onLogout, userToken }) => {
   const [dueDate, setDueDate] = useState("");
   const navigate = useNavigate();
 
-  // Fetch tasks on page load and when user logs in
-  useEffect(() => {
-    if (isAuthenticated) {
-      axios
-        .post("/api/get-all-tasks", {
+  const fetchTasks = async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/tasks/get-all-tasks",
+        {
           headers: {
-            Authorization: `Bearer ${userToken}`, // Pass JWT token for authentication
+            Authorization: `Bearer ${userToken}`,
           },
-        })
-        .then((response) => {
-          setTasks(response.data);
-        })
-        .catch((error) => {
-          console.error("Error fetching tasks", error);
-        });
+        }
+      );
+      setTasks(response.data);
+    } catch (error) {
+      console.error("Error fetching tasks", error);
     }
+  };
+
+  useEffect(() => {
+    fetchTasks();
   }, [isAuthenticated, userToken]);
 
-  // Add new task
-  const addTask = () => {
+  const addTask = async () => {
     if (!isAuthenticated) {
       alert("Please log in or sign up to save tasks!");
       navigate("/signin");
@@ -59,61 +62,62 @@ const Todo = ({ isAuthenticated, onLogout, userToken }) => {
         completed: false,
       };
 
-      axios
-        .post("/api/new-task", taskData, {
-          headers: {
-            Authorization: `Bearer ${userToken}`,
-          },
-        })
-        .then((response) => {
-          setTasks((prevTasks) => [...prevTasks, response.data]);
-          setNewTask("");
-          setPriority("Low");
-          setDueDate("");
-        })
-        .catch((error) => {
-          console.error("Error adding task", error);
-        });
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/tasks/new-task",
+          taskData,
+          {
+            headers: {
+              Authorization: `Bearer ${userToken}`,
+            },
+          }
+        );
+        setTasks((prevTasks) => [...prevTasks, response.data]);
+        setNewTask("");
+        setPriority("Low");
+        setDueDate("");
+      } catch (error) {
+        console.error("Error adding task", error);
+      }
     }
   };
 
-  const deleteTask = (id) => {
-    axios
-      .post(`/api/delete-task/${id}`, {
+  const deleteTask = async (id) => {
+    try {
+      await axios.post(`http://localhost:5000/tasks/delete-task/${id}`, {
         headers: {
           Authorization: `Bearer ${userToken}`,
         },
-      })
-      .then(() => {
-        setTasks(tasks.filter((task) => task.id !== id));
-      })
-      .catch((error) => {
-        console.error("Error deleting task", error);
       });
+
+      setTasks(tasks.filter((task) => task.id !== id));
+    } catch (error) {
+      console.error("Error deleting task", error);
+    }
   };
 
-  const updateTask = (id) => {
+  const updateTask = async (id) => {
     const taskToUpdate = tasks.find((task) => task.id === id);
-    axios
-      .post(
-        `/api/update-task/${id}`,
+
+    try {
+      await axios.post(
+        `http://localhost:5000/tasks//update-task/${id}`,
         { completed: !taskToUpdate.completed },
         {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
         }
-      )
-      .then(() => {
-        setTasks(
-          tasks.map((task) =>
-            task.id === id ? { ...task, completed: !task.completed } : task
-          )
-        );
-      })
-      .catch((error) => {
-        console.error("Error updating task", error);
-      });
+      );
+
+      setTasks(
+        tasks.map((task) =>
+          task.id === id ? { ...task, completed: !task.completed } : task
+        )
+      );
+    } catch (error) {
+      console.error("Error updating task", error);
+    }
   };
 
   const fieldStyles = {
@@ -130,16 +134,7 @@ const Todo = ({ isAuthenticated, onLogout, userToken }) => {
         color: "black",
       },
     "& .MuiSelect-select": {
-      color: (theme) => (priority === "Select" ? "#757575" : "black"),
-    },
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: "#2E8B57",
-    },
-    "&:hover .MuiOutlinedInput-notchedOutline": {
-      borderColor: "black",
-    },
-    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-      borderColor: "black",
+      color: priority === "Select" ? "#757575" : "black",
     },
   };
 
@@ -186,10 +181,14 @@ const Todo = ({ isAuthenticated, onLogout, userToken }) => {
               id="priority-label"
               sx={{
                 color: priority === "Select" ? "#757575" : "black",
+                "&.Mui-focused": {
+                  color: "black",
+                },
               }}
             >
               Priority
             </InputLabel>
+
             <Select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}

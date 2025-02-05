@@ -9,170 +9,247 @@ import {
   ListItem,
   ListItemText,
   IconButton,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel,
 } from "@mui/material";
-import { CheckCircle, Edit, Delete, Add } from "@mui/icons-material";
+import { Add, CheckCircle, Delete } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const Todo = ({ isAuthenticated, onLogout }) => {
+const Todo = ({ isAuthenticated, onLogout, userToken }) => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
-  const [editTaskId, setEditTaskId] = useState(null);
-  const [editTaskText, setEditTaskText] = useState("");
+  const [priority, setPriority] = useState("Select");
+  const [dueDate, setDueDate] = useState("");
   const navigate = useNavigate();
 
+  // Fetch tasks on page load and when user logs in
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/signin");
+    if (isAuthenticated) {
+      axios
+        .post("/api/get-all-tasks", {
+          headers: {
+            Authorization: `Bearer ${userToken}`, // Pass JWT token for authentication
+          },
+        })
+        .then((response) => {
+          setTasks(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching tasks", error);
+        });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, userToken]);
 
+  // Add new task
   const addTask = () => {
+    if (!isAuthenticated) {
+      alert("Please log in or sign up to save tasks!");
+      navigate("/signin");
+      return;
+    }
+
     if (newTask.trim()) {
-      setTasks([...tasks, { id: Date.now(), text: newTask, completed: false }]);
-      setNewTask("");
+      const taskData = {
+        text: newTask,
+        priority,
+        dueDate,
+        completed: false,
+      };
+
+      axios
+        .post("/api/new-task", taskData, {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        })
+        .then((response) => {
+          setTasks((prevTasks) => [...prevTasks, response.data]);
+          setNewTask("");
+          setPriority("Low");
+          setDueDate("");
+        })
+        .catch((error) => {
+          console.error("Error adding task", error);
+        });
     }
   };
 
   const deleteTask = (id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+    axios
+      .post(`/api/delete-task/${id}`, {
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+        },
+      })
+      .then(() => {
+        setTasks(tasks.filter((task) => task.id !== id));
+      })
+      .catch((error) => {
+        console.error("Error deleting task", error);
+      });
   };
 
   const updateTask = (id) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, text: editTaskText } : task
+    const taskToUpdate = tasks.find((task) => task.id === id);
+    axios
+      .post(
+        `/api/update-task/${id}`,
+        { completed: !taskToUpdate.completed },
+        {
+          headers: {
+            Authorization: `Bearer ${userToken}`,
+          },
+        }
       )
-    );
-    setEditTaskId(null);
-    setEditTaskText("");
+      .then(() => {
+        setTasks(
+          tasks.map((task) =>
+            task.id === id ? { ...task, completed: !task.completed } : task
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Error updating task", error);
+      });
   };
 
-  const toggleComplete = (id) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+  const fieldStyles = {
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": { borderColor: "#2E8B57" },
+      "&:hover fieldset": { borderColor: "black" },
+      "&.Mui-focused fieldset": { borderColor: "black" },
+    },
+    "& .MuiInputLabel-root": {
+      color: "#757575",
+    },
+    "& .MuiInputLabel-root.Mui-focused, & .MuiInputLabel-root.MuiFormLabel-filled":
+      {
+        color: "black",
+      },
+    "& .MuiSelect-select": {
+      color: (theme) => (priority === "Select" ? "#757575" : "black"),
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#2E8B57",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "black",
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "black",
+    },
   };
 
   return (
-    <Container
-      sx={{
-        mt: 4,
-        p: 2,
-        backgroundColor: "#f9f9f9",
-        borderRadius: "8px",
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-      }}
-    >
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ textAlign: "center", fontWeight: "bold" }}
-      >
-        Todo List
-      </Typography>
+    <Container>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 5 }}>
+        <Typography variant="h4" gutterBottom sx={{ textAlign: "center" }}>
+          Todo List
+        </Typography>
 
-      {/* Add New Task */}
-      <Box sx={{ display: "flex", gap: 2, alignItems: "center", mb: 4 }}>
-        <TextField
-          variant="outlined"
-          fullWidth
-          label="New Task"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={addTask}
-          startIcon={<Add />}
-        >
-          Add
-        </Button>
-      </Box>
-
-      {/* Task List */}
-      <List>
-        {tasks.map((task) => (
-          <ListItem
-            key={task.id}
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center", mb: 4 }}>
+          <TextField
+            variant="outlined"
+            label="New Task"
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
             sx={{
-              backgroundColor: task.completed ? "#e8f5e9" : "#fff",
-              borderRadius: "8px",
-              mb: 2,
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+              width: "90%",
+              flexGrow: 1,
+              ...fieldStyles,
+            }}
+          />
+          <FormControl
+            sx={{
+              minWidth: "20%",
+              flexGrow: 1,
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#2E8B57",
+                },
+                "&:hover fieldset": {
+                  borderColor: "black",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "black",
+                },
+              },
+              "& .MuiSelect-select": {
+                color: priority === "Select" ? "#757575" : "black",
+              },
             }}
           >
-            {editTaskId === task.id ? (
-              <Box sx={{ display: "flex", gap: 2, flex: 1 }}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  value={editTaskText}
-                  onChange={(e) => setEditTaskText(e.target.value)}
-                />
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={() => updateTask(task.id)}
-                >
-                  Save
-                </Button>
-              </Box>
-            ) : (
-              <>
-                <ListItemText
-                  primary={task.text}
-                  sx={{
-                    textDecoration: task.completed ? "line-through" : "none",
-                    color: task.completed ? "#2e7d32" : "#000",
-                  }}
-                />
-                <IconButton
-                  onClick={() => toggleComplete(task.id)}
-                  color="success"
-                >
-                  <CheckCircle />
-                </IconButton>
-                <IconButton
-                  onClick={() => {
-                    setEditTaskId(task.id);
-                    setEditTaskText(task.text);
-                  }}
-                  color="primary"
-                >
-                  <Edit />
-                </IconButton>
-                <IconButton onClick={() => deleteTask(task.id)} color="error">
-                  <Delete />
-                </IconButton>
-              </>
-            )}
-          </ListItem>
-        ))}
-      </List>
+            <InputLabel
+              id="priority-label"
+              sx={{
+                color: priority === "Select" ? "#757575" : "black",
+              }}
+            >
+              Priority
+            </InputLabel>
+            <Select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              label="priority"
+              labelId="priority-label"
+              displayEmpty
+            >
+              <MenuItem value="Select" disabled>
+                Select Priority
+              </MenuItem>
+              <MenuItem value="Low">Low</MenuItem>
+              <MenuItem value="Medium">Medium</MenuItem>
+              <MenuItem value="High">High</MenuItem>
+            </Select>
+          </FormControl>
 
-      {/* Video Section */}
-      <Box sx={{ mt: 4, textAlign: "center" }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
-          How to Use Todo-Plus
-        </Typography>
-        <video width="100%" controls>
-          <source src="../Assets/todo-video.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
+          <TextField
+            type="date"
+            label="Due Date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ width: "20%", flexGrow: 1, ...fieldStyles }}
+          />
+          <Button
+            variant="contained"
+            onClick={addTask}
+            startIcon={<Add />}
+            sx={{
+              width: "10%",
+              height: "56px",
+              backgroundColor: "#2E8B57",
+              "&:hover": { backgroundColor: "green" },
+              flexGrow: 1,
+            }}
+          >
+            Add
+          </Button>
+        </Box>
+
+        <List>
+          {tasks.map((task) => (
+            <ListItem key={task.id}>
+              <ListItemText
+                primary={task.text}
+                secondary={`Priority: ${task.priority} | Due: ${task.dueDate}`}
+                sx={{
+                  textDecoration: task.completed ? "line-through" : "none",
+                }}
+              />
+              <IconButton onClick={() => updateTask(task.id)} color="success">
+                <CheckCircle />
+              </IconButton>
+              <IconButton onClick={() => deleteTask(task.id)} color="error">
+                <Delete />
+              </IconButton>
+            </ListItem>
+          ))}
+        </List>
       </Box>
-
-      {/* Logout */}
-      <Button
-        variant="contained"
-        color="secondary"
-        sx={{ mt: 4, display: "block", ml: "auto" }}
-        onClick={onLogout}
-      >
-        Logout
-      </Button>
     </Container>
   );
 };

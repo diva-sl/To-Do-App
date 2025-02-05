@@ -39,7 +39,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
-          <Route path="/todo" element={<Todo />} />
+          <Route path="/todo" element={<Todo isAuthenticated={isLoggedIn} />} />
           <Route path="/signin" element={<SignIn onLogin={handleLogin} />} />
           <Route path="/signup" element={<SignUp />} />
         </Routes>

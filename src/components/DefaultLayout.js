@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import logo from "../Assets/todo-img.gif";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import { ExitToApp, Login, PersonAdd } from "@mui/icons-material";
 
 function DefaultLayout({ children, isLoggedIn, onLogout }) {
   const [userName, setUserName] = useState("");
@@ -90,11 +90,23 @@ function DefaultLayout({ children, isLoggedIn, onLogout }) {
                 component={Link}
                 to="/signin"
                 sx={{
-                  backgroundColor: "#000",
-                  color: "#fff",
-                  fontSize: "12px",
                   fontWeight: "bold",
+                  fontSize: "12px",
+                  backgroundColor: "black",
+                  color: "#fff",
+                  padding: "6px 14px",
+                  borderRadius: "8px",
+                  textTransform: "capitalize",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  "&:hover": {
+                    backgroundColor: "#333",
+                    transform: "scale(1.02)",
+                  },
+                  transition: "transform 0.2s ease, background-color 0.3s",
                 }}
+                endIcon={<Login />}
               >
                 Sign In
               </Button>
@@ -102,11 +114,24 @@ function DefaultLayout({ children, isLoggedIn, onLogout }) {
                 component={Link}
                 to="/signup"
                 sx={{
-                  backgroundColor: "#000",
-                  color: "#fff",
-                  fontSize: "12px",
                   fontWeight: "bold",
+                  fontSize: "12px",
+                  backgroundColor: "black",
+                  color: "#fff",
+                  padding: "6px 14px",
+                  borderRadius: "8px",
+                  textTransform: "capitalize",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  "&:hover": {
+                    backgroundColor: "#333",
+                    transform: "scale(1.02)",
+                  },
+                  transition: "transform 0.2s ease, background-color 0.3s",
+                  marginLeft: "20px",
                 }}
+                endIcon={<PersonAdd />}
               >
                 Sign Up
               </Button>
@@ -180,7 +205,7 @@ function DefaultLayout({ children, isLoggedIn, onLogout }) {
                 }}
               >
                 Exit
-                <ExitToAppIcon sx={{ fontSize: "20px" }} />{" "}
+                <ExitToApp sx={{ fontSize: "20px" }} />
               </Button>
             </Box>
           )}

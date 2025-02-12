@@ -6,7 +6,6 @@ const userRoute = require("./routes/usersRoutes.js");
 const taskRoute = require("./routes/tasksRoutes.js");
 
 const app = express();
-
 // MongoDB Connection
 mongoose
   .connect(process.env.mongo_url)

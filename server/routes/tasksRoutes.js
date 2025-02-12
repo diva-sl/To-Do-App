@@ -3,17 +3,26 @@ const Task = require("../modals/taskModels.js");
 
 const router = express.Router();
 
-// Get all tasks
+// Get all Tasks
 router.post("/get-all-tasks", async (req, res) => {
   try {
     const tasks = await Task.find();
-    res.json(tasks);
+
+    const formattedTasks = tasks.map((task) => ({
+      ...task._doc,
+      dueDate: task.dueDate
+        ? new Date(task.dueDate).toLocaleDateString("en-GB")
+        : null,
+    }));
+
+    res.json(formattedTasks);
   } catch (error) {
     res.status(500).json({ message: "Error fetching tasks", error });
   }
 });
 
 // Create a new task
+
 router.post("/new-task", async (req, res) => {
   try {
     const { text, priority, dueDate } = req.body;
@@ -31,13 +40,15 @@ router.post("/new-task", async (req, res) => {
   }
 });
 
-// Update a task's completion status
-router.put("/update-task/:id", async (req, res) => {
+//update task
+
+router.post("/update-task", async (req, res) => {
   try {
-    const { completed } = req.body;
+    const { id, text, priority, dueDate } = req.body;
+
     const task = await Task.findByIdAndUpdate(
-      req.params.id,
-      { completed },
+      id,
+      { text, priority, dueDate },
       { new: true }
     );
 
@@ -52,9 +63,12 @@ router.put("/update-task/:id", async (req, res) => {
 });
 
 // Delete a task
-router.delete("/delete-task/:id", async (req, res) => {
+
+router.post("/delete-task", async (req, res) => {
   try {
-    const task = await Task.findByIdAndDelete(req.params.id);
+    const { id } = req.body;
+
+    const task = await Task.findByIdAndDelete(id);
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });

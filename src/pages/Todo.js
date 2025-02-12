@@ -13,8 +13,12 @@ import {
   Select,
   MenuItem,
   InputLabel,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from "@mui/material";
-import { Add, CheckCircle, Delete } from "@mui/icons-material";
+import { Add, CheckCircle, Delete, Edit } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -23,6 +27,8 @@ const Todo = ({ isAuthenticated, onLogout, userToken }) => {
   const [newTask, setNewTask] = useState("");
   const [priority, setPriority] = useState("Select");
   const [dueDate, setDueDate] = useState("");
+  const [editTask, setEditTask] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const fetchTasks = async () => {
@@ -84,37 +90,54 @@ const Todo = ({ isAuthenticated, onLogout, userToken }) => {
 
   const deleteTask = async (id) => {
     try {
-      await axios.post(`http://localhost:5000/tasks/delete-task/${id}`, {
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-        },
-      });
-
-      setTasks(tasks.filter((task) => task.id !== id));
-    } catch (error) {
-      console.error("Error deleting task", error);
-    }
-  };
-
-  const updateTask = async (id) => {
-    const taskToUpdate = tasks.find((task) => task.id === id);
-
-    try {
       await axios.post(
-        `http://localhost:5000/tasks//update-task/${id}`,
-        { completed: !taskToUpdate.completed },
+        "http://localhost:5000/tasks/delete-task",
+        { id },
         {
           headers: {
             Authorization: `Bearer ${userToken}`,
           },
         }
       );
+      setTasks(tasks.filter((task) => task._id !== id));
+    } catch (error) {
+      console.error("Error deleting task", error);
+    }
+  };
 
+  const openEditModal = (task) => {
+    setEditTask({
+      ...task,
+      dueDate: task.dueDate?.split("-").reverse().join("-") || "",
+    });
+    setEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    setEditTask(null);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditTask((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const updateTask = async () => {
+    if (!editTask.text.trim()) return;
+    try {
+      await axios.post("http://localhost:5000/tasks/update-task", editTask, {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
       setTasks(
         tasks.map((task) =>
-          task.id === id ? { ...task, completed: !task.completed } : task
+          task._id === editTask._id ? { ...task, ...editTask } : task
         )
       );
+      closeEditModal();
     } catch (error) {
       console.error("Error updating task", error);
     }
@@ -137,7 +160,6 @@ const Todo = ({ isAuthenticated, onLogout, userToken }) => {
       color: priority === "Select" ? "#757575" : "black",
     },
   };
-
   return (
     <Container>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 5 }}>
@@ -231,24 +253,82 @@ const Todo = ({ isAuthenticated, onLogout, userToken }) => {
 
         <List>
           {tasks.map((task) => (
-            <ListItem key={task.id}>
+            <ListItem key={task._id}>
               <ListItemText
                 primary={task.text}
                 secondary={`Priority: ${task.priority} | Due: ${task.dueDate}`}
-                sx={{
-                  textDecoration: task.completed ? "line-through" : "none",
-                }}
               />
-              <IconButton onClick={() => updateTask(task.id)} color="success">
-                <CheckCircle />
+              <IconButton
+                onClick={() => openEditModal(task)}
+                sx={{ color: "#2E8B57" }}
+              >
+                <Edit />
               </IconButton>
-              <IconButton onClick={() => deleteTask(task.id)} color="error">
+              <IconButton onClick={() => deleteTask(task._id)} color="error">
                 <Delete />
               </IconButton>
             </ListItem>
           ))}
         </List>
       </Box>
+      <Dialog
+        open={editModalOpen}
+        onClose={closeEditModal}
+        sx={{
+          "& .MuiPaper-root": {
+            backgroundColor: "#98FB98",
+            color: "Black",
+          },
+        }}
+      >
+        <DialogTitle>Edit Task</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Task"
+            name="text"
+            value={editTask?.text || ""}
+            onChange={handleEditChange}
+            sx={{ mb: 2, ...fieldStyles }}
+          />
+          <FormControl fullWidth sx={{ mb: 2, ...fieldStyles }}>
+            <InputLabel>Priority</InputLabel>
+            <Select
+              name="priority"
+              value={editTask?.priority || ""}
+              onChange={handleEditChange}
+            >
+              <MenuItem value="Low">Low</MenuItem>
+              <MenuItem value="Medium">Medium</MenuItem>
+              <MenuItem value="High">High</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            type="date"
+            label="Due Date"
+            name="dueDate"
+            InputLabelProps={{ shrink: true }}
+            value={editTask?.dueDate || ""}
+            onChange={handleEditChange}
+            sx={{ ...fieldStyles }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeEditModal}>Cancel</Button>
+          <Button
+            onClick={updateTask}
+            sx={{
+              backgroundColor: "#2E8B57",
+              color: "black",
+              "&:hover": { backgroundColor: "#8FBC8F" },
+            }}
+            variant="contained"
+          >
+            Update
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
